@@ -1,4 +1,4 @@
-// let's try to get rid of jQuery !
+'use strict';
 var fs = require("fs");
 var request = require("request");
 var http = require('http');
@@ -7,8 +7,6 @@ var mm = require('musicmetadata');
 // test
 //url = 'www.p1x3L.com/mp3s/03%20Bluebird.mp3';
 
-// create buffer for reading mp3
-var buffer;
 var audio = new Audio();
 audio.src = 'buffer.mp3';
 
@@ -16,11 +14,12 @@ audio.src = 'buffer.mp3';
 // current problem: if I load() the audio before "end" it will only play until "at that time what was the last" chunck and stop.
 // also if we click multiple times, it opens multiple getAudio instances...
 function getAudio(url){
-    metadata_found = false;
-    buffer = fs.createWriteStream('buffer.mp3');
+    var buffer = fs.createWriteStream('buffer.mp3');
 
     audio.pause();
     var buffed = 0;
+
+    //request('http://google.com/doodle.png').pipe(fs.createWriteStream('doodle.png'))
     http.get(url, function(res) {
         if(res.statusCode != 200){
             alert('no mp3');
@@ -82,7 +81,7 @@ audio.addEventListener('durationchange', function() {
 
 // update time of music
 audio.addEventListener('timeupdate', function (){
-    curtime = parseInt(audio.currentTime, 10) * 100 / duration
+    var curtime = parseInt(audio.currentTime, 10) * 100 / duration
     $(".load").css("width", curtime + "%")
 })
 
@@ -98,22 +97,62 @@ document.getElementById('search').addEventListener('submit', function(e){
     search = search.replace(' ', '_');
     $('.mp3').parent().remove();
 
+    //
+    // LOOKING FOR .MP3
+    //
     request.get("http://mp3skull.com/mp3/"+ search +".html",
      function(error, response, body) {
         if(error || response.statusCode != 200){
             document.write(error);
             return false;
         }
-        data = body;
+
         var re = /(http.*\.mp3)/g;
-        data = data.match(re);
+        var data = body.match(re);
 
-
+        //
+        // .MP3 FOUND!
+        //
         if(data !== null){
-            //document.write(data);
             data.forEach(function(item, i){
                 // check size
                // var uri = item.match(/http:\/\/([^/]*)(.*)/);
+                //
+                // CHECK FOR METADATA (doesn't work :()
+                //
+                /*
+                http.get(item, function(res){
+                    // we can open the file?
+                    if(res.statusCode == 200){
+                        // check headers fo size
+                        if(res.headers['content-length'] !== undefined && res.headers['content-length'] > 10000){
+                            // check metadata
+                            var name;
+                            var cache = fs.createWriteStream('cache_'+i);
+                            res.on('data', function(chunk) {
+                                cache.write(chunk);
+                                var parser = mm(fs.createReadStream('cache_'+i));
+                                parser.on('metadata', function (result) {
+                                    name = result.artist+' - '+result.title;
+                                    console.log(result);
+                                    res.destroy();
+                                });
+
+                              });
+
+                            document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+item+'" class="mp3">'+name+'</a> ('+response.headers['content-length']+')</li>');
+                        }
+                    }
+                    else{
+                        // skip
+                    }
+                }).on('error', function(e) {
+                    console.log("Got error: " + e.message);
+                });
+                */
+                //
+                // OLD METHOD, CHECK FOR SIZE
+                //
                 request.head(item, function(error, response, body){
                     if(!error && response.statusCode == 200){
                         if(response.headers['content-length'] !== undefined && response.headers['content-length'] > 10000){
@@ -129,10 +168,6 @@ document.getElementById('search').addEventListener('submit', function(e){
                         // skip
                     }
                 });
-
-                //req.end();
-
-
             });
         }
 
