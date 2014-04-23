@@ -23,7 +23,7 @@ header h1{
     color:whitesmoke;
     display: inline-block;
 }
-header input[type=text]{
+nav input[type=text]{
     border:0;
     padding:5px;
     border-radius:5px;
@@ -33,11 +33,11 @@ header input[type=text]{
     transition:all .5s;
     color:rgba(0, 0, 0, .4);
 }
-header input:hover{
+nav input:hover{
     background-color:white;
     color:black;
 }
-header input[type=submit]{
+nav input[type=submit]{
     border-radius:5px;
     background-color:rgba(0, 255, 0, .2);
     color:white;
@@ -46,9 +46,6 @@ header input[type=submit]{
     font-family:"Open Sans", helvetica, arial, sans-serif;
     font-size:20px;
     cursor:pointer;
-}
-header a{
-    color:whitesmoke;
 }
 #end{
     display:none;
@@ -86,7 +83,7 @@ nav span{
     color:whitesmoke;
     margin-right: 15px;
 }
-nav .home{
+nav form{
     float:right;
 }
 

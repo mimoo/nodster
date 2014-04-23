@@ -5,7 +5,7 @@
     "title": "Popcorn Time",
     "icon": "images/icon.png",
     "toolbar": true,
-    "frame": false,
+    "frame": true,
     "width": 962,
     "height": 600,
     "min_width": 962,
