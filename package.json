@@ -1,4 +1,15 @@
 {
   "name": "nw-demo",
-  "main": "index.html"
+  "main": "index.html",
+  "window": {
+    "title": "Popcorn Time",
+    "icon": "images/icon.png",
+    "toolbar": true,
+    "frame": false,
+    "width": 962,
+    "height": 600,
+    "min_width": 962,
+    "min_height": 600,
+    "resizable": true
+  }
 }
