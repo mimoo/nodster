@@ -1,24 +1,49 @@
 body{
     margin:0;
+    font-family: "Open Sans", helvetica, arial, sans-serif;
+    padding-top:200px;
 }
 header{
-    background-color:rgba(0, 0, 0, .5);
+    padding:10px;
+    background-color:rgba(0, 0, 0, .9);
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
 }
 header h1{
     margin:0;
+    font-weight: 700;
+    color:whitesmoke;
+    display: inline-block;
 }
 header input[type=text]{
     border:0;
     padding:5px;
     border-radius:5px;
+    font-family:"Open Sans", helvetica, arial, sans-serif;
+    font-size:20px;
+    background-color:rgba(255, 255, 255, .3);
+    transition:all .5s;
+    color:rgba(0, 0, 0, .4);
+}
+header input:hover{
+    background-color:white;
+    color:black;
 }
 header input[type=submit]{
     border-radius:5px;
-    background-color:green;
+    background-color:rgba(0, 255, 0, .2);
     color:white;
     border:0;
+    padding:5px;
+    font-family:"Open Sans", helvetica, arial, sans-serif;
+    font-size:20px;
+    cursor:pointer;
 }
-
+header a{
+    color:whitesmoke;
+}
 #end{
     display:none;
 }
