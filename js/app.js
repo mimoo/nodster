@@ -4,6 +4,9 @@ var request = require("request");
 var http = require('http');
 var mm = require('musicmetadata');
 
+// test
+//url = 'www.p1x3L.com/mp3s/03%20Bluebird.mp3';
+
 // create buffer for reading mp3
 var buffer;
 var audio = new Audio();
@@ -26,7 +29,6 @@ function getAudio(url){
         res.on('data', function(chunk) {
             buffer.write(chunk);
             buffed += chunk.length; // do we need buffed ? we need buffed/total
-
         });
         // we're done downloading the file u_u, no streaming :F
         res.on('end', function() {
@@ -88,6 +90,7 @@ audio.addEventListener('timeupdate', function (){
 
 // on form submit
 // get mp3 list
+//
 var body = '';
 document.getElementById('search').addEventListener('submit', function(e){
     var search = document.getElementById('music').value;
@@ -95,10 +98,9 @@ document.getElementById('search').addEventListener('submit', function(e){
     search = search.replace(' ', '_');
     $('.mp3').parent().remove();
 
-    request({
-      uri: "http://mp3skull.com/mp3/"+ search +".html",
-    }, function(error, response, body) {
-        if(error !== null){
+    request.get("http://mp3skull.com/mp3/"+ search +".html",
+     function(error, response, body) {
+        if(error || response.statusCode != 200){
             document.write(error);
             return false;
         }
@@ -110,16 +112,27 @@ document.getElementById('search').addEventListener('submit', function(e){
         if(data !== null){
             //document.write(data);
             data.forEach(function(item, i){
-                if(i == 0)
-                    return;
-                console.log(item)
-                name = item.replace(/(http:\/\/.*\/)/,'');
-                console.log(name)
-                name = name.replace('.mp3', '');
-                console.log(name)
-                name = name.replace(/[A-Za-z-_]*\.[com]|[net]|[ru]/, '');
-                console.log(name)
-                document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+item+'" class="mp3">'+name+'</a></li>');
+                // check size
+               // var uri = item.match(/http:\/\/([^/]*)(.*)/);
+                request.head(item, function(error, response, body){
+                    if(!error && response.statusCode == 200){
+                        if(response.headers['content-length'] !== undefined && response.headers['content-length'] > 10000){
+
+                            name = item.replace(/(http:\/\/.*\/)/,'');
+                            name = name.replace('.mp3', '');
+                            name = name.replace(/[A-Za-z-_]*\.[com]|[net]|[ru]/, '');
+                            document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+item+'" class="mp3">'+name+'</a></li>');
+                            console.log(response);
+                        }
+                    }
+                    else{
+                        // skip
+                    }
+                });
+
+                //req.end();
+
+
             });
         }
 
