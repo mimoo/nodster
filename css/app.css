@@ -1,0 +1,20 @@
+body{
+    margin:0;
+}
+header{
+    background-color:rgba(0, 0, 0, .5);
+}
+header h1{
+    margin:0;
+}
+header input[type=text]{
+    border:0;
+    padding:5px;
+    border-radius:5px;
+}
+header input[type=submit]{
+    border-radius:5px;
+    background-color:green;
+    color:white;
+    border:0;
+}
