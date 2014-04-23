@@ -14,4 +14,4 @@ This is just for fun and this is not a serious project as there are obvious lega
 
 If you want to try it, just put all these files in [node-webkit](https://github.com/rogerwang/node-webkit) and launch the `nw` executable.
 
-Also you'll need to use the `ffmpegsumo.dll` I provided (because vanilla node-webkit doesn't read mp3s). It's the windows version. For Linux/MAC check the [popcorn-time repo])(https://github.com/popcorn-time/popcorn-app/tree/master/libraries)
+Also you'll need to use the `ffmpegsumo.dll` I provided (because vanilla node-webkit doesn't read mp3s). It's the windows version. For Linux/MAC check the [popcorn-time repo](https://github.com/popcorn-time/popcorn-app/tree/master/libraries)
