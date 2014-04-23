@@ -1,10 +1,10 @@
 {
-  "name": "nw-demo",
+  "name": "nodster",
   "main": "index.html",
   "window": {
     "title": "Popcorn Time",
     "icon": "images/icon.png",
-    "toolbar": true,
+    "toolbar": false,
     "frame": false,
     "width": 962,
     "height": 600,

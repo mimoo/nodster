@@ -18,3 +18,7 @@ header input[type=submit]{
     color:white;
     border:0;
 }
+
+#end{
+    display:none;
+}

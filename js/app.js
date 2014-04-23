@@ -66,7 +66,8 @@ document.getElementById('search').addEventListener('submit', function(e){
             data.forEach(function(item, i){
                 if(i == 0)
                     return;
-                name = item.replace(/(http:\/\/.*\/)/,'')
+                name = item.replace(/(http:\/\/.*\/)/,'');
+                name = name.replace('.mp3', '');
                 document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+item+'" class="mp3">'+name+'</a></li>');
             });
         }
