@@ -86,11 +86,50 @@ audio.addEventListener('timeupdate', function (){
 })
 
 
+function check_mp3(mp3s, ii){
+    // get metadata
+    http.get(mp3s[ii], function(res){
+        // simple checks
+        if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > 10000){
+            // check metadata
+            var name;
+            var cache = fs.createWriteStream('cache.mp3');
+            var cache_read = fs.createReadStream('cache.mp3');
 
-// on form submit
-// get mp3 list
+            res.on('data', function(chunk) {
+                cache.write(chunk);
+                var parser = mm(cache_read);
+                parser.on('metadata', function (result) {
+                    name = result.artist+' - '+result.title;
+                    document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+url+'" class="mp3">'+name+'</a> ('+response.headers['content-length']+')</li>');
+                    res.destroy();
+                    // check next mp3
+                    ii++;
+                    if(ii < mp3s.length)
+                        check_mp3(mp3s, ii);
+                });
+            });
+        }
+        else{
+            // skip
+            // check next mp3
+            ii++;
+            if(ii < mp3s.length)
+                check_mp3(mp3s, ii);
+        }
+    }).on('error', function(e) {
+        console.log("Got error: " + e.message);
+        // check next mp3
+        ii++;
+        if(ii < mp3s.length)
+            check_mp3(mp3s, ii);
+    });
+
+}
+
 //
-var body = '';
+//  NEW SEARCH
+//
 document.getElementById('search').addEventListener('submit', function(e){
     var search = document.getElementById('music').value;
     search = search.trim();
@@ -98,22 +137,33 @@ document.getElementById('search').addEventListener('submit', function(e){
     $('.mp3').parent().remove();
 
     //
-    // LOOKING FOR .MP3
+    //  LOOKING IN MP3SKULL.COM
     //
-    request.get("http://mp3skull.com/mp3/"+ search +".html",
+    request("http://mp3skull.com/mp3/"+ search +".html",
      function(error, response, body) {
         if(error || response.statusCode != 200){
+            alert()
             document.write(error);
             return false;
         }
 
         var re = /(http.*\.mp3)/g;
-        var data = body.match(re);
+        var mp3s = body.match(re);
+        console.log(mp3s);
+        //
+        // CHECKING LIST OF MP3s
+        //
+        if(mp3s !== null){
+            console.log(mp3s);
+            check_mp3(mp3s, 0);
+        }
+    });
 
-        //
-        // .MP3 FOUND!
-        //
-        if(data !== null){
+    //
+    e.preventDefault();
+});
+
+/*
             data.forEach(function(item, i){
                 // check size
                // var uri = item.match(/http:\/\/([^/]*)(.*)/);
@@ -153,6 +203,7 @@ document.getElementById('search').addEventListener('submit', function(e){
                 //
                 // OLD METHOD, CHECK FOR SIZE
                 //
+                /*
                 request.head(item, function(error, response, body){
                     if(!error && response.statusCode == 200){
                         if(response.headers['content-length'] !== undefined && response.headers['content-length'] > 10000){
@@ -174,7 +225,7 @@ document.getElementById('search').addEventListener('submit', function(e){
     });
 
     e.preventDefault();
-}, false);
+}, false);*/
 
 // in the list of mp3
 // when clicking on a link
