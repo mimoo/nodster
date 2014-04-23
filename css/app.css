@@ -3,6 +3,12 @@ body{
     font-family: "Open Sans", helvetica, arial, sans-serif;
     padding-top:200px;
 }
+a:active, a:focus{
+    outline:0;
+}
+a{
+    text-decoration: none;
+}
 header{
     padding:10px;
     background-color:rgba(0, 0, 0, .9);
@@ -46,4 +52,53 @@ header a{
 }
 #end{
     display:none;
+}
+
+
+
+
+/* nav */
+nav{
+    z-index:99;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    background-color:rgba(255, 255, 255, .9);
+    background-color: orangered;
+    padding: 10px 20px;
+    font-size: 15px;
+    letter-spacing: 1px;
+    font-family:Cuprum;
+}
+nav a{
+    color:whitesmoke;
+}
+nav a:hover, nav a:active, nav a:visited{
+    color:whitesmoke;
+    text-decoration: none;
+    background-color:tomato;
+}
+nav span{
+    font-weight: 300;
+    font-size: 1em;
+    margin-left:10px;
+    color:whitesmoke;
+    margin-right: 15px;
+}
+nav .home{
+    float:right;
+}
+
+/* music player */
+
+.time{
+    width:100%;
+    margin-bottom: 5px;
+}
+.load{
+    width:0;
+    background-color:whitesmoke;
+    height:5px;
+    transition:width 1s;
 }

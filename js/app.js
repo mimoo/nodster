@@ -33,11 +33,16 @@ function getAudio(url){
             // play
             audio.load();
             audio.play();
+            if($('.play').attr('display') != 'none')
+            {
+                $('.play').hide();
+                $('.pause').show();
+            }
             // get metadata
-            var parser = mm(fs.createReadStream('buffer.mp3'), { duration: true });
+            var parser = mm(fs.createReadStream('buffer.mp3'));
             parser.on('metadata', function (result) {
                 console.log(result);
-                $('#metadata').html(result.artist+' '+result.title+ ' '+result.duration);
+                $('.info').html(result.artist+' '+result.title);
             });
         });
     }).on('error', function(e) {
@@ -46,11 +51,39 @@ function getAudio(url){
 }
 
 // simple button to play
-document.getElementById('play').addEventListener('click', function(){
+$('.play').click(function(){
+    if($('.play').attr('display') != 'none')
+    {
+        $('.play').hide();
+        $('.pause').show();
+    }
     audio.load();
     audio.play();
     return false;
 });
+$('.pause').click(function(){
+    if($('.pause').attr('display') != 'none')
+    {
+        $('.pause').hide();
+        $('.play').show();
+    }
+    audio.pause();
+    return false;
+});
+
+var duration;
+
+// duration of the song
+audio.addEventListener('durationchange', function() {
+    duration = audio.duration
+})
+
+// update time of music
+audio.addEventListener('timeupdate', function (){
+    curtime = parseInt(audio.currentTime, 10) * 100 / duration
+    $(".load").css("width", curtime + "%")
+})
+
 
 
 // on form submit
