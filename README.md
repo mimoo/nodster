@@ -12,6 +12,8 @@ Nodster is a crawler that finds mp3 and stream them from any source.
 
 This is just for fun and this is not a serious project as there are obvious legal issues.
 
-If you want to try it, just put all these files in [node-webkit](https://github.com/rogerwang/node-webkit) and launch the `nw` executable.
-
-Also you'll need to use the `ffmpegsumo.dll` I provided (because vanilla node-webkit doesn't read mp3s). It's the windows version. For Linux/MAC check the [popcorn-time repo](https://github.com/popcorn-time/popcorn-app/tree/master/libraries)
+If you want to try it, just:
+* put all these files in [node-webkit](https://github.com/rogerwang/node-webkit).
+* install the dependencies with `npm install` (you'll have to install node.js first and you can find the dependencies in the `package.json`.
+* get the relevant `ffmpegsumo.dll` from `libraries` and use it instead of node-webkit's default (you need that to read mp3s).
+* launch the `nw` executable.
