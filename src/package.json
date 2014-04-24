@@ -1,11 +1,7 @@
 {
   "name": "Nodster",
   "main": "index.html",
-  "version": "0.1.1",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mimoo/nodster.git"
-  },
+  "version":"0.1.1",
   "window": {
     "title": "Nodster",
     "toolbar": true,
@@ -20,9 +16,5 @@
     "google": "0.3.2",
     "musicmetadata": "0.3.7",
     "request": "2.34.0"
-  },
-  "devDependencies": {
-    "grunt": "^0.4.4",
-    "grunt-node-webkit-builder": "^0.1.20"
   }
 }
