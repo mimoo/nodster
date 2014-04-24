@@ -94,7 +94,9 @@ function check_link(links, ii){
         }
 
         var re = /http[^=]*\.mp3(?=")/g;
-        mp3s = mp3s.concat(body.match(re));
+        var newmp3 = body.match(re);
+        if(newmp3 !== null)
+            mp3s = mp3s.concat(newmp3);
 
         ++ii;
         if(ii < links.length){
@@ -158,6 +160,7 @@ function check_mp3(mp3s, ii){
 }
 
 // new search
+// DOESNT WORK WELL IF WE DO A SEARCH WHILE ONE IS GOING ON!
 document.getElementById('search').addEventListener('submit', function(e){
     var search = document.getElementById('music').value;
     $('.mp3').parent().remove();
@@ -170,18 +173,22 @@ document.getElementById('search').addEventListener('submit', function(e){
        var mp3_sites = [];
 
        for (var i = 0; i < links.length; ++i) {
+            if(links[i].link === null)
+                continue;
+            var uri = links[i].link.match(/http:\/\/([^/]*)(.*)/);
+            if(uri === null)
+                continue;
 
-           var uri = links[i].link.match(/http:\/\/([^/]*)(.*)/);
-
-           // is this an amazon website ?
-           if(uri[1].indexOf("amazon") == -1){
+            // is this an amazon website ?
+            if(uri[1].indexOf("amazon") == -1 && uri[1].indexOf("soundcloud") == -1 && uri[1].indexOf("facebook") == -1 && uri[1].indexOf("youtube") == -1 && uri[1].indexOf("last.fm") == -1){
                mp3_sites.push(links[i].link);
-           }
+            }
 
-       }
+        }
 
-       check_link(mp3_sites, 0);
-   });
+        if(mp3_sites.length > 0)
+            check_link(mp3_sites, 0);
+    });
 
     //
     e.preventDefault();
