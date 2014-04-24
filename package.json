@@ -1,9 +1,13 @@
 {
-  "name": "nodster",
+  "name": "Nodster",
   "main": "index.html",
+  "version": "0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mimoo/nodster.git"
+  },
   "window": {
-    "title": "Popcorn Time",
-    "icon": "images/icon.png",
+    "title": "Nodster",
     "toolbar": true,
     "frame": true,
     "width": 962,
@@ -11,5 +15,10 @@
     "min_width": 962,
     "min_height": 600,
     "resizable": true
+  },
+  "dependencies": {
+    "google": "0.3.2",
+    "musicmetadata": "0.3.7",
+    "request": "2.34.0"
   }
 }
