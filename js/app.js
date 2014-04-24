@@ -1,5 +1,4 @@
 'use strict';
-var google = require('google');
 var request = require("request");
 var http = require('http');
 var fs = require("fs");
@@ -97,7 +96,7 @@ audio.addEventListener('timeupdate', function (){
 
 // check each link
 var mp3s = [];
-function check_link(links, ii){
+function check_link(links, links, ii){
     request(links[ii],
      function(error, response, body) {
 
@@ -178,13 +177,14 @@ document.getElementById('search').addEventListener('submit', function(e){
     $('.mp3').parent().remove();
 
    // check google links
-   google.resultsPerPage = 15;
-   google(search+' mp3', function(err, next, links){
-       if (err) console.error(err);
+    var google = require('google');
+    google.resultsPerPage = 15;
+    google(search+' mp3', function(err, next, links){
+        if (err) console.error(err);
 
-       var mp3_sites = [];
+        var mp3_sites = [];
 
-       for (var i = 0; i < links.length; ++i) {
+        for (var i = 0; i < links.length; ++i) {
             if(links[i].link === null)
                 continue;
             var uri = links[i].link.match(/http:\/\/([^/]*)(.*)/);
