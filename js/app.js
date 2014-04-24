@@ -9,8 +9,7 @@ audio.src = 'buffer.mp3';
 
 var buffer = fs.createWriteStream('buffer.mp3');
 // get the audio from url into a stream
-// current problem: if I load() the audio before "end" it will only play until "at that time what was the last" chunck and stop.
-// also if we click multiple times, it opens multiple getAudio instances...
+// if we click multiple times, it opens multiple getAudio instances...
 function getAudio(url){
 
     audio.pause();
@@ -96,7 +95,7 @@ audio.addEventListener('timeupdate', function (){
 
 // check each link
 var mp3s = [];
-function check_link(links, links, ii){
+function check_link(links, ii){
     request(links[ii],
      function(error, response, body) {
 
