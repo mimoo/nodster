@@ -1,15 +1,11 @@
 {
   "name": "nodster",
-  "main": "index.html",
-  "window": {
-    "title": "Popcorn Time",
-    "icon": "images/icon.png",
-    "toolbar": true,
-    "frame": true,
-    "width": 962,
-    "height": 600,
-    "min_width": 962,
-    "min_height": 600,
-    "resizable": true
+  "version":"0.1.1",
+  "dependencies": {
+
+    },
+  "devDependencies": {
+    "grunt": "^0.4.4",
+    "grunt-node-webkit-builder": "^0.1.20"
   }
 }
