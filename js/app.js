@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var request = require("request");
 var http = require('http');
 var fs = require("fs");
@@ -138,7 +138,7 @@ function check_mp3(mp3s, ii){
                 if(!metadata_found){
                     console.log(result);
                     name = result.artist+' - '+result.title;
-                    document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+mp3s[ii]+'" class="mp3">'+name+'</a> ('+res.headers['content-length']+')</li>');
+                    document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+mp3s[ii]+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
                     res.destroy();
                     metadata_found = true;
 
