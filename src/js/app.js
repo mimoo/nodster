@@ -8,14 +8,15 @@ var mm = require('musicmetadata');
 var audio = new Audio();
 audio.src = 'buffer.mp3';
 
+var buffer = fs.createWriteStream('buffer.mp3');
 // get the audio from url into a stream
 // current problem: if I load() the audio before "end" it will only play until "at that time what was the last" chunck and stop.
 // also if we click multiple times, it opens multiple getAudio instances...
 function getAudio(url){
-    var buffer = fs.createWriteStream('buffer.mp3');
 
     audio.pause();
     var buffed = 0;
+    var metadata_found = false;
 
     //request('http://google.com/doodle.png').pipe(fs.createWriteStream('doodle.png'))
     http.get(url, function(res) {
@@ -23,11 +24,28 @@ function getAudio(url){
             alert('no mp3');
             return false;
         }
+
+        // get metadata
+        var parser = mm(res);
+
+        parser.on('metadata', function (result) {
+            console.log(result);
+            if(!metadata_found){
+                parser = mm(res);
+                $('.info').html(result.artist+' '+result.title);
+                metadata_found = true;
+            }
+        });
+
         res.on('data', function(chunk) {
             buffer.write(chunk);
-            buffed += chunk.length; // do we need buffed ? we need buffed/total
+            buffed += chunk.length;
+            // do we need buffed? we need buffed/total
         });
-        // we're done downloading the file u_u, no streaming :F
+
+        // we're done downloading the file, no streaming yet
+        // that would be cool if we could start playing the
+        // mp3 while loading it though...
         res.on('end', function() {
             // play
             audio.load();
@@ -37,12 +55,6 @@ function getAudio(url){
                 $('.play').hide();
                 $('.pause').show();
             }
-            // get metadata
-            var parser = mm(fs.createReadStream('buffer.mp3'));
-            parser.on('metadata', function (result) {
-                console.log(result);
-                $('.info').html(result.artist+' '+result.title);
-            });
         });
     }).on('error', function(e) {
       console.log("Got error: " + e.message);
@@ -88,16 +100,16 @@ var mp3s = [];
 function check_link(links, ii){
     request(links[ii],
      function(error, response, body) {
-        if(error || response.statusCode != 200){
-            console.log(error);
-            return false;
+
+        // let's crawl this link
+        if(!error && response.statusCode == 200){
+            var re = /http[^=]*\.mp3(?=")/g;
+            var newmp3 = body.match(re);
+            if(newmp3 !== null)
+                mp3s = mp3s.concat(newmp3);
         }
 
-        var re = /http[^=]*\.mp3(?=")/g;
-        var newmp3 = body.match(re);
-        if(newmp3 !== null)
-            mp3s = mp3s.concat(newmp3);
-
+        // next links
         ++ii;
         if(ii < links.length){
             check_link(links, ii);
@@ -113,7 +125,6 @@ function check_link(links, ii){
 // check each mp3 file for metadatas
 function check_mp3(mp3s, ii){
 
-    var parser;
     var metadata_found = false;
 
     http.get(mp3s[ii], function(res){
