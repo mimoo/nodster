@@ -161,6 +161,7 @@ function check_mp3(mp3s, ii){
 
 // new search
 // DOESNT WORK WELL IF WE DO A SEARCH WHILE ONE IS GOING ON!
+// im scared that it is the google library that does that...
 document.getElementById('search').addEventListener('submit', function(e){
     var search = document.getElementById('music').value;
     $('.mp3').parent().remove();
