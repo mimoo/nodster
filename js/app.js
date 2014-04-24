@@ -7,7 +7,6 @@ var mm = require('musicmetadata');
 var audio = new Audio();
 audio.src = 'buffer.mp3';
 
-var buffer = fs.createWriteStream('buffer.mp3');
 // get the audio from url into a stream
 // if we click multiple times, it opens multiple getAudio instances...
 function getAudio(url){
@@ -15,6 +14,7 @@ function getAudio(url){
     audio.pause();
     var buffed = 0;
     var metadata_found = false;
+    var buffer = fs.createWriteStream('buffer.mp3');
 
     //request('http://google.com/doodle.png').pipe(fs.createWriteStream('doodle.png'))
     http.get(url, function(res) {
