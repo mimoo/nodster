@@ -1,6 +1,6 @@
 {
   "name": "Nodster",
-  "main": "src/index.html",
+  "main": "index.html",
   "version": "0.1.1",
   "repository": {
     "type": "git",
