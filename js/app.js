@@ -50,7 +50,8 @@ function getAudio(url){
         // starting to buffer
 
         // if a new file wants to be buffered we kill this one
-        nodster.on('new', function(){
+        nodster.once('new', function(){
+            buffer.end();
             res.destroy();
         });
 
@@ -132,7 +133,7 @@ function check_mp3(url){
         if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > minimum){
 
             var parser = mm(res);
-            parser.on('metadata', function (result) {
+            parser.once('metadata', function (result) {
                 // format name
                 var name = url.match(/([^/]*)(?=\.mp3)/)[0];
                 if(result.title != ""){
@@ -216,27 +217,26 @@ $(document).on('click', '.mp3', function(e){
     //
     var href = $(this).attr('href');
 
+    // we wait for clearance
+    nodster.once('clear', function(){
+        nodster.removeAllListeners("clear");
+        pause();
+        getAudio(href);
+
+        // view
+        $('.active').removeClass('active');
+        $(this).addClass('active');
+        $('.info').html($(this).text());
+    });
+
     // if something is already buffering
     if(buffering){
-        // we ask to buffer
         nodster.emit('new');
-        // we wait for clearance
-        nodster.on('clear', function(){
-            // others might have started buffering also
-            if(!buffering){
-                pause();
-                getAudio(href);
-            }
-        });
     }
     else{
-        getAudio(href);
+        nodster.emit('clear');
     }
 
-    // view
-    $('.active').removeClass('active');
-    $(this).addClass('active');
-    $('.info').html($(this).text());
 
     //
     e.preventDefault();
