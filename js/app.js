@@ -9,56 +9,79 @@ audio.src = 'buffer.mp3';
 
 // get the audio from url into a stream
 // if we click multiple times, it opens multiple getAudio instances...
+var buffering = false;
+var interrupting = false;
+
 function getAudio(url){
-    audio.pause();
-    var buffed = 0;
-    var metadata_found = false;
-    var buffer = fs.createWriteStream('buffer.mp3');
-
-    http.get(url, function(res) {
-        if(res.statusCode != 200){
-            alert('no mp3');
-            return false;
+    if(buffering){
+        interrupting = true;
+        while(interrupting){
+            // wait
         }
+        buffering = false;
+        getAudio(url);
+        return false;
+    }
+    else{
+        audio.pause();
+        var buffed = 0;
+        var metadata_found = false;
+        var buffer = fs.createWriteStream('buffer.mp3');
 
-        // get metadata
-        var parser = mm(res);
+        http.get(url, function(res) {
+            if(res.statusCode != 200){
+                alert('no mp3');
+                return false;
+            }
 
-        parser.on('metadata', function (result) {
-            console.log(result);
-            if(!metadata_found){
-                parser = mm(res);
-                var name = url.match(/([^/]*)(?=\.mp3)/)[0];
-                if(result.artist[0] != "" || result.title != ""){
-                    name = result.artist[0]+' - '+result.title;
+            buffering = true;
+
+            // get metadata
+            var parser = mm(res);
+
+            parser.on('metadata', function (result) {
+                console.log(result);
+                if(!metadata_found){
+                    parser = mm(res);
+                    var name = url.match(/([^/]*)(?=\.mp3)/)[0];
+                    if(result.artist[0] != "" || result.title != ""){
+                        name = result.artist[0]+' - '+result.title;
+                    }
+                    $('.info').html(name);
+                    metadata_found = true;
                 }
-                $('.info').html(name);
-                metadata_found = true;
-            }
-        });
+            });
 
-        res.on('data', function(chunk) {
-            buffer.write(chunk);
-            buffed += chunk.length;
-            // do we need buffed? we need buffed/total
-        });
+            res.on('data', function(chunk) {
+                if(interrupting){
+                    res.destroy();
+                    interrupting = false;
+                    return false;
+                }
+                buffer.write(chunk);
+                buffed += chunk.length;
+                // do we need buffed? we need buffed/total
+            });
 
-        // we're done downloading the file, no streaming yet
-        // that would be cool if we could start playing the
-        // mp3 while loading it though...
-        res.on('end', function() {
-            // play
-            audio.load();
-            audio.play();
-            if($('.play').attr('display') != 'none')
-            {
-                $('.play').hide();
-                $('.pause').show();
-            }
+            // we're done downloading the file, no streaming yet
+            // that would be cool if we could start playing the
+            // mp3 while loading it though...
+            res.on('end', function() {
+                // buffering
+                buffering = false;
+                // play
+                audio.load();
+                audio.play();
+                if($('.play').attr('display') != 'none')
+                {
+                    $('.play').hide();
+                    $('.pause').show();
+                }
+            });
+        }).on('error', function(e) {
+          console.log("Got error: " + e.message);
         });
-    }).on('error', function(e) {
-      console.log("Got error: " + e.message);
-    });
+    }
 }
 
 
@@ -145,7 +168,6 @@ function check_mp3(mp3s, ii){
     }).on('error', function(e) {
         console.log("Got error: " + e.message);
         // check next mp3
-        res.destroy();
         ii++;
         if(ii < mp3s.length)
             check_mp3(mp3s, ii);
