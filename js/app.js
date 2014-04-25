@@ -130,6 +130,7 @@ function check_link(links, ii){
 
 // check distant mp3 file for metadatas
 function check_mp3(url){
+
     console.log("checking mp3",url);
     http.get(url, function(res){
         // simple checks
