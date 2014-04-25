@@ -25,14 +25,19 @@ var nodster = new events.EventEmitter();
 // Get the audio from url into a stream
 var buffering = false;
 
-var buffer = fs.createWriteStream('buffer.mp3', { flags: 'w'});
+var buffer;
 
 function getAudio(url){
 
     // init
+    buffer = fs.createWriteStream('buffer.mp3');
+    buffering = true;
     var buffed = 0;
+
+    // view
     $('.progress').width(0);
 
+    // request
     http.get(url, function(res) {
         if(res.statusCode != 200){
             alert('no mp3');
@@ -111,7 +116,7 @@ function check_link(links, ii){
         if(ii < links.length){
             check_link(links, ii);
         }
-        // no mp3 found. End search
+        // End search
         else{
             console.log("found "+mp3s_found+" files");
             end_search();
@@ -209,21 +214,22 @@ document.getElementById('search').addEventListener('submit', function(e){
 $(document).on('click', '.mp3', function(e){
 
     //
-    nodster.emit('new');
     var href = $(this).attr('href');
 
-    // if something is already buffering we wait
-    if(buffering)
+    // if something is already buffering
+    if(buffering){
+        // we ask to buffer
+        nodster.emit('new');
+        // we wait for clearance
         nodster.on('clear', function(){
-            audio.pause();
-            buffer.end();
-            buffer = fs.createWriteStream('buffer.mp3', { flags: 'w'});
-            buffering = true;
-            getAudio(href);
+            // others might have started buffering also
+            if(!buffering){
+                pause();
+                getAudio(href);
+            }
         });
+    }
     else{
-
-        buffering = true;
         getAudio(href);
     }
 
@@ -248,13 +254,13 @@ $('.play').click(function(){
 });
 
 // pause button
-$('.pause').click(function(){
-    if($('.pause').attr('display') != 'none')
-    {
-        $('.pause').hide();
-        $('.play').show();
-    }
+function pause(){
+    $('.pause').hide();
+    $('.play').show();
     audio.pause();
+}
+$('.pause').click(function(){
+    pause();
     return false;
 });
 
