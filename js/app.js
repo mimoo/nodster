@@ -146,7 +146,9 @@ function check_mp3(url){
                     else
                         name = result.artist[0]+' - '+result.title;
                     // remove url from name
-                    name = name.replace(/\(?\w+\.(net|com|ru)\)?/gi, '');
+                    name = name.replace(/\(?\w+\.(net|com|ru|info)\)?/gi, '');
+                    name = name.replace(/(\(?www\.[a-z]+\.[a-z]+\)?)/gi, '');
+                    name = name.replace('.mp3', '');
                 }
                 // view
                 document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+url+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
@@ -187,7 +189,12 @@ function search(){
         // parse relevant links
         // (could avoid & at the end with /http[^&]*/g)
         $(body).find('.r a').each(function(index){
-            links.push($(this).attr('href').match(/http.*/g)[0]);
+            try{
+                links.push($(this).attr('href').match(/http.*/g)[0]);
+            }
+            catch(err){
+                console.log(err);
+            }
         });
 
         console.log(links);
