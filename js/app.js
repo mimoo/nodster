@@ -145,7 +145,7 @@ function check_mp3(mp3s, ii){
                     mp3s_found++;
                     console.log(result);
                     var name = mp3s[ii].match(/([^/]*)(?=\.mp3)/)[0];
-                    if(result.artist[0] != "" || result.title != ""){
+                    if(result.title != ""){
                         if(result.artist[0] != "" && result.title.indexOf(result.artist[0]) > -1)
                             name = result.title;
                         else
