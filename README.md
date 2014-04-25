@@ -3,7 +3,7 @@ Nodster
 > Node-webkit + Napster
 
 ![nodster](http://i.imgur.com/6hWLBl0.png)
-[it looks like that in action](https://www.youtube.com/watch?v=ynExKXtopPY&feature=youtu.be)
+[it looks like that in action](https://www.youtube.com/watch?v=ynExKXtopPY&feature=youtu.be) (note that it is an old version and it is much much faster now).
 
 Nodster is a crawler that finds mp3 and stream them from any source.
 
