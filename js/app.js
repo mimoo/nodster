@@ -4,6 +4,12 @@ var http = require('http');
 var fs = require("fs");
 var mm = require('musicmetadata');
 
+// CONFIG
+
+var maximum = 10; // maximum of mp3s it will find
+
+// AUDIO
+
 var audio = new Audio();
 audio.src = 'buffer.mp3';
 
@@ -24,7 +30,6 @@ function getAudio(url){
     else{
         audio.pause();
         var buffed = 0;
-        var metadata_found = false;
         var buffer = fs.createWriteStream('buffer.mp3');
 
         http.get(url, function(res) {
@@ -35,22 +40,6 @@ function getAudio(url){
 
             buffering = true;
 
-            // get metadata
-            var parser = mm(res);
-
-            parser.on('metadata', function (result) {
-                console.log(result);
-                if(!metadata_found){
-                    parser = mm(res);
-                    var name = url.match(/([^/]*)(?=\.mp3)/)[0];
-                    if(result.artist[0] != "" || result.title != ""){
-                        name = result.artist[0]+' - '+result.title;
-                    }
-                    $('.info').html(name);
-                    metadata_found = true;
-                }
-            });
-
             res.on('data', function(chunk) {
                 if(interrupting){
                     res.destroy();
@@ -59,6 +48,7 @@ function getAudio(url){
                 }
                 buffer.write(chunk);
                 buffed += chunk.length;
+                $('.progress').css('width', buffed * 100 / res.headers['content-length']+ '%');
                 // do we need buffed? we need buffed/total
             });
 
@@ -66,6 +56,7 @@ function getAudio(url){
             // that would be cool if we could start playing the
             // mp3 while loading it though...
             res.on('end', function() {
+                $('.progress').fadeOut();
                 // buffering
                 buffering = false;
                 // play
@@ -83,14 +74,19 @@ function getAudio(url){
     }
 }
 
+// function called after a search ended
+function end_search(){
+    $('.fa-spin').hide();
+    $('input[type=submit]').show();
+}
 
 var mp3s = [];
-
 // check each link
 function check_link(links, ii){
     request(links[ii],
      function(error, response, body) {
-
+        if(ii == 0)
+            mp3s = [];
         // let's crawl this link
         if(!error && response.statusCode == 200){
             var newmp3 = [];
@@ -119,13 +115,20 @@ function check_link(links, ii){
             console.log(mp3s);
             check_mp3(mp3s, 0);
         }
+        else{
+            end_search();
+        }
     });
 }
 
 // check each mp3 file for metadatas
 // should try to do that asynchronously but limit it to 10 or something?
 // THIS IS NOT WORKING PROPERLY.. droping a lot of mp3s dunno why
+var mp3s_found = 0;
+
 function check_mp3(mp3s, ii){
+    if(ii == 0)
+        mp3s_found = 0;
 
     var metadata_found = false;
 
@@ -139,10 +142,15 @@ function check_mp3(mp3s, ii){
             parser.on('metadata', function (result) {
                 // no duplicates
                 if(!metadata_found){
+                    mp3s_found++;
                     console.log(result);
                     var name = mp3s[ii].match(/([^/]*)(?=\.mp3)/)[0];
                     if(result.artist[0] != "" || result.title != ""){
-                        name = result.artist[0]+' - '+result.title;
+                        if(result.artist[0] != "" && result.title.indexOf(result.artist[0]) > -1)
+                            name = result.title;
+                        else
+                            name = result.artist[0]+' - '+result.title;
+
                     }
                     document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+mp3s[ii]+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
                     res.destroy();
@@ -150,8 +158,11 @@ function check_mp3(mp3s, ii){
 
                     // check next mp3
                     ii++;
-                    if(ii < mp3s.length)
+                    if(mp3s_found < maximum && ii < mp3s.length)
                         check_mp3(mp3s, ii);
+                    else{
+                        end_search();
+                    }
                 }
 
             });
@@ -161,8 +172,11 @@ function check_mp3(mp3s, ii){
             console.log(res.headers);
             res.destroy();
             ii++;
-            if(ii < mp3s.length)
+            if(ii < mp3s.length )
                 check_mp3(mp3s, ii);
+            else{
+                end_search();
+            }
         }
     }).on('error', function(e) {
         console.log("Got error: " + e.message);
@@ -170,20 +184,23 @@ function check_mp3(mp3s, ii){
         ii++;
         if(ii < mp3s.length)
             check_mp3(mp3s, ii);
+        else{
+            end_search();
+        }
     });
 }
 
-
 // new search
 // DOESNT WORK WELL IF WE DO A SEARCH WHILE ONE IS GOING ON!
-document.getElementById('search').addEventListener('submit', function(e){
+function search(){
+    // view
+    $('.mp3').parent().remove();
+    $('.fa-spin').show();
+    $('input[type=submit]').hide();
 
     // format search
     var search = document.getElementById('music').value;
     search = search.replace(' ', '+') + ' mp3 -facebook -youtube -soundcloud -last.fm -amazon -dailymotion -bleep';
-
-    // remove actual searches
-    $('.mp3').parent().remove();
 
     // check google links
     request('http://www.google.com/search?q='+search, function(error, response, body){
@@ -200,10 +217,17 @@ document.getElementById('search').addEventListener('submit', function(e){
 
         // let's check those websites
         if(links.length > 0){
-            mp3s = [];
             check_link(links, 0);
         }
+
     });
+}
+
+// on search submit
+document.getElementById('search').addEventListener('submit', function(e){
+
+    // search
+    search();
 
     //
     e.preventDefault();
@@ -213,6 +237,8 @@ document.getElementById('search').addEventListener('submit', function(e){
 // when clicking on a link
 $(document).on('click', '.mp3', function(e){
     getAudio($(this).attr('href'));
+    $('.info').html($(this).text());
+    $('.progress').show();
     e.preventDefault();
 });
 
