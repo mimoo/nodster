@@ -29,6 +29,7 @@ function getAudio(url){
 
     // init
     var buffed = 0;
+    $('.progress').width(0);
     var buffer = fs.createWriteStream('buffer.mp3');
 
     http.get(url, function(res) {
@@ -36,6 +37,9 @@ function getAudio(url){
             alert('no mp3');
             return false;
         }
+
+        // view
+        $('.progress').fadeIn();
 
         // starting to buffer
         buffering = true;
@@ -54,7 +58,6 @@ function getAudio(url){
 
         // file downloaded
         res.on('end', function() {
-            nodster.emit('clear');
             buffering = false;
             audio.load();
             audio.play();
@@ -64,6 +67,7 @@ function getAudio(url){
                 $('.play').hide();
                 $('.pause').show();
             }
+            nodster.emit('clear');
         });
     }).on('error', function(e) {
       console.log("Got error: " + e.message);
@@ -213,15 +217,14 @@ $(document).on('click', '.mp3', function(e){
         nodster.on('clear', function(){
             getAudio(href);
         });
-    else
+    else{
         getAudio(href);
+    }
 
     // view
     $('.active').removeClass('active');
     $(this).addClass('active');
     $('.info').html($(this).text());
-    $('.progress').width(0);
-    $('.progress').fadeIn();
 
     //
     e.preventDefault();
