@@ -12,6 +12,10 @@ var minimum = 2000000; // minimum of bits(decimals) a mp3 must have
 var audio = new Audio();
 audio.src = 'buffer.mp3';
 
+//
+// CORE
+//
+
 // Get the audio from url into a stream
 var buffering = false;
 var interrupting = false;
@@ -73,17 +77,14 @@ function end_search(){
     $('.fa-spin').hide();
     $('input[type=submit]').show();
 }
+var mp3s_found = 0;
 
 // Check each link that google gives us
-var mp3s = [];
 function check_link(links, ii){
-    request(links[ii],
-     function(error, response, body) {
-        if(ii == 0)
-            mp3s = [];
+
+    request(links[ii], function(error, response, body) {
 
         if(!error && response.statusCode == 200){
-            var newmp3 = [];
             /* using jQuery to parse the html,
             this produces error in the console,
             the document is trying to GET images
@@ -91,11 +92,10 @@ function check_link(links, ii){
             $(body).find('a').each(function(index){
                 var href = $(this).attr('href');
                 if(href !== undefined && href.indexOf(".mp3") > -1 && href.indexOf("http") > -1){
-                    newmp3.push(href);
+                    if(check_mp3(href))
+                        mp3s_found++;
                 }
             })
-            if(newmp3 !== null)
-                mp3s = mp3s.concat(newmp3);
         }
         else
             console.log('can\'t access link',links[ii], error);
@@ -105,37 +105,25 @@ function check_link(links, ii){
         if(ii < links.length){
             check_link(links, ii);
         }
-        // no more links to parse, let's check the mp3 found
-        else if(mp3s.length != 0){
-            console.log(mp3s);
-            check_mp3(mp3s, 0);
-        }
         // no mp3 found. End search
         else{
+            console.log("found "+mp3s_found+" files");
             end_search();
         }
     });
 }
 
-// check each mp3 file for metadatas
-// should try to do that asynchronously but limit it to 10 or something?
-var mp3s_found = 0;
+// check distant mp3 file for metadatas
+function check_mp3(url){
 
-function check_mp3(mp3s, ii){
-    if(ii == 0)
-        mp3s_found = 0;
-
-
-    http.get(mp3s[ii], function(res){
+    http.get(url, function(res){
         // simple checks
         if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > minimum){
 
             var parser = mm(res);
             parser.on('metadata', function (result) {
-
-                mp3s_found++;
-                console.log(result);
-                var name = mp3s[ii].match(/([^/]*)(?=\.mp3)/)[0];
+                // format name
+                var name = url.match(/([^/]*)(?=\.mp3)/)[0];
                 if(result.title != ""){
                     if(result.artist[0] != "" && result.title.indexOf(result.artist[0]) > -1)
                         name = result.title;
@@ -143,39 +131,20 @@ function check_mp3(mp3s, ii){
                         name = result.artist[0]+' - '+result.title;
 
                 }
-                document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+mp3s[ii]+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
+                // view
+                document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+url+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
                 res.destroy();
 
-                // check next mp3
-                ii++;
-                if(mp3s_found < maximum && ii < mp3s.length)
-                    check_mp3(mp3s, ii);
-                else{
-                    end_search();
-                }
-
+                return true;
             });
         }
         else{
-            // skip & check next mp3
-            console.log(res.headers);
             res.destroy();
-            ii++;
-            if(ii < mp3s.length )
-                check_mp3(mp3s, ii);
-            else{
-                end_search();
-            }
+            return false;
         }
     }).on('error', function(e) {
-        console.log("Got error: ", e.message);
-        // check next mp3
-        ii++;
-        if(ii < mp3s.length)
-            check_mp3(mp3s, ii);
-        else{
-            end_search();
-        }
+        console.log("error: ",url, e.message);
+        return false;
     });
 }
 
@@ -211,6 +180,11 @@ function search(){
     });
 }
 
+
+//
+// EVENTS
+//
+
 // on search submit
 document.getElementById('search').addEventListener('submit', function(e){
 
@@ -220,10 +194,6 @@ document.getElementById('search').addEventListener('submit', function(e){
     //
     e.preventDefault();
 });
-
-//
-// EVENTS
-//
 
 // get mp3
 $(document).on('click', '.mp3', function(e){
