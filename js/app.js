@@ -10,7 +10,6 @@ audio.src = 'buffer.mp3';
 // get the audio from url into a stream
 // if we click multiple times, it opens multiple getAudio instances...
 function getAudio(url){
-
     audio.pause();
     var buffed = 0;
     var metadata_found = false;
@@ -59,39 +58,6 @@ function getAudio(url){
     });
 }
 
-// simple button to play
-$('.play').click(function(){
-    if($('.play').attr('display') != 'none')
-    {
-        $('.play').hide();
-        $('.pause').show();
-    }
-    audio.load();
-    audio.play();
-    return false;
-});
-$('.pause').click(function(){
-    if($('.pause').attr('display') != 'none')
-    {
-        $('.pause').hide();
-        $('.play').show();
-    }
-    audio.pause();
-    return false;
-});
-
-var duration;
-
-// duration of the song
-audio.addEventListener('durationchange', function() {
-    duration = audio.duration
-})
-
-// update time of music
-audio.addEventListener('timeupdate', function (){
-    var curtime = parseInt(audio.currentTime, 10) * 100 / duration
-    $(".load").css("width", curtime + "%")
-})
 
 // check each link
 var mp3s = [];
@@ -101,8 +67,13 @@ function check_link(links, ii){
 
         // let's crawl this link
         if(!error && response.statusCode == 200){
-            var re = /http[^=]*\.mp3(?=")/g;
-            var newmp3 = body.match(re);
+            var newmp3 = [];
+            $(body).find('a').each(function(index){
+                var href = $(this).attr('href');
+                if(href !== undefined && href.indexOf(".mp3") > -1 && href.indexOf("http") > -1){
+                    newmp3.push(href);
+                }
+            })
             if(newmp3 !== null)
                 mp3s = mp3s.concat(newmp3);
         }
@@ -115,12 +86,15 @@ function check_link(links, ii){
         }
         else if(mp3s.length != 0){
             console.log('go');
+            console.log(mp3s);
             check_mp3(mp3s, 0);
         }
     });
 }
 
 // check each mp3 file for metadatas
+// should try to do that asynchronously but limit it to 10 or something?
+// THIS IS NOT WORKING PROPERLY.. droping a lot of mp3s dunno why
 function check_mp3(mp3s, ii){
 
     var metadata_found = false;
@@ -168,9 +142,11 @@ function check_mp3(mp3s, ii){
     });
 }
 
+
 // new search
 // DOESNT WORK WELL IF WE DO A SEARCH WHILE ONE IS GOING ON!
 // im scared that it is the google library that does that...
+// pretty slow and weird results as well...
 document.getElementById('search').addEventListener('submit', function(e){
     var search = document.getElementById('music').value;
     $('.mp3').parent().remove();
@@ -205,10 +181,43 @@ document.getElementById('search').addEventListener('submit', function(e){
     e.preventDefault();
 });
 
-
 // in the list of mp3
 // when clicking on a link
 $(document).on('click', '.mp3', function(e){
     getAudio($(this).attr('href'));
     e.preventDefault();
 });
+
+// simple button to play
+$('.play').click(function(){
+    if($('.play').attr('display') != 'none')
+    {
+        $('.play').hide();
+        $('.pause').show();
+    }
+    audio.load();
+    audio.play();
+    return false;
+});
+$('.pause').click(function(){
+    if($('.pause').attr('display') != 'none')
+    {
+        $('.pause').hide();
+        $('.play').show();
+    }
+    audio.pause();
+    return false;
+});
+
+var duration;
+
+// duration of the song
+audio.addEventListener('durationchange', function() {
+    duration = audio.duration
+})
+
+// update time of music
+audio.addEventListener('timeupdate', function (){
+    var curtime = parseInt(audio.currentTime, 10) * 100 / duration
+    $(".load").css("width", curtime + "%")
+})
