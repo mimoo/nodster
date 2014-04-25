@@ -77,7 +77,9 @@ function end_search(){
     $('.fa-spin').hide();
     $('input[type=submit]').show();
 }
+
 var mp3s_found = 0;
+var list_mp3s = [];
 
 // Check each link that google gives us
 function check_link(links, ii){
@@ -91,10 +93,10 @@ function check_link(links, ii){
             that are on the page :s */
             $(body).find('a').each(function(index){
                 var href = $(this).attr('href');
-                if(href !== undefined && href.indexOf(".mp3") > -1 && href.indexOf("http") > -1){
-                    if(check_mp3(href))
+
+                // check + metadata
+                if(href !== undefined && href.indexOf(".mp3") > -1 && href.indexOf("http") > -1 && $.inArray(href, list_mp3s) == -1 && check_mp3(href))
                         mp3s_found++;
-                }
             })
         }
         else
@@ -129,7 +131,8 @@ function check_mp3(url){
                         name = result.title;
                     else
                         name = result.artist[0]+' - '+result.title;
-
+                    // remove url from name
+                    name = name.replace(/\(?\w+\.(net|com)\)?/gi, '');
                 }
                 // view
                 document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+url+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
@@ -150,6 +153,9 @@ function check_mp3(url){
 
 // new search
 function search(){
+    // init
+    mp3s_found = 0;
+    list_mp3s = [];
     // view
     $('.mp3').parent().remove();
     $('.fa-spin').show();
