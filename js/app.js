@@ -109,7 +109,7 @@ function check_mp3(mp3s, ii){
 
     http.get(mp3s[ii], function(res){
         // simple checks
-        if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > 10000){
+        if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > 2000000){
             // check metadata
             var metadata_found = false;
             var parser = mm(res);
@@ -135,9 +135,9 @@ function check_mp3(mp3s, ii){
             });
         }
         else{
-            // skip &
-            // check next mp3
+            // skip & check next mp3
             console.log(res.headers);
+            res.destroy();
             ii++;
             if(ii < mp3s.length)
                 check_mp3(mp3s, ii);
@@ -145,7 +145,7 @@ function check_mp3(mp3s, ii){
     }).on('error', function(e) {
         console.log("Got error: " + e.message);
         // check next mp3
-
+        res.destroy();
         ii++;
         if(ii < mp3s.length)
             check_mp3(mp3s, ii);
@@ -159,7 +159,7 @@ document.getElementById('search').addEventListener('submit', function(e){
 
     // format search
     var search = document.getElementById('music').value;
-    search = search.replace(' ', '+') + ' mp3 -facebook -youtube -soundcloud -last.fm -amazon -dailymotion';
+    search = search.replace(' ', '+') + ' mp3 -facebook -youtube -soundcloud -last.fm -amazon -dailymotion -bleep';
 
     // remove actual searches
     $('.mp3').parent().remove();
