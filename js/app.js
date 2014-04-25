@@ -15,7 +15,6 @@ function getAudio(url){
     var metadata_found = false;
     var buffer = fs.createWriteStream('buffer.mp3');
 
-    //request('http://google.com/doodle.png').pipe(fs.createWriteStream('doodle.png'))
     http.get(url, function(res) {
         if(res.statusCode != 200){
             alert('no mp3');
@@ -29,7 +28,11 @@ function getAudio(url){
             console.log(result);
             if(!metadata_found){
                 parser = mm(res);
-                $('.info').html(result.artist+' '+result.title);
+                var name = url.match(/([^/]*)(?=\.mp3)/)[0];
+                if(result.artist[0] != "" || result.title != ""){
+                    name = result.artist[0]+' - '+result.title;
+                }
+                $('.info').html(name);
                 metadata_found = true;
             }
         });
@@ -59,8 +62,9 @@ function getAudio(url){
 }
 
 
-// check each link
 var mp3s = [];
+
+// check each link
 function check_link(links, ii){
     request(links[ii],
      function(error, response, body) {
@@ -68,6 +72,10 @@ function check_link(links, ii){
         // let's crawl this link
         if(!error && response.statusCode == 200){
             var newmp3 = [];
+            /* using jQuery to parse the html,
+            this produces error in the console,
+            the document is trying to GET images
+            that are on the page :s */
             $(body).find('a').each(function(index){
                 var href = $(this).attr('href');
                 if(href !== undefined && href.indexOf(".mp3") > -1 && href.indexOf("http") > -1){
@@ -77,15 +85,15 @@ function check_link(links, ii){
             if(newmp3 !== null)
                 mp3s = mp3s.concat(newmp3);
         }
+        else
+            console.log('can\'t access link',links[ii], error);
 
         // next links
-        ++ii;
+        ii++;
         if(ii < links.length){
             check_link(links, ii);
-            console.log(ii);
         }
         else if(mp3s.length != 0){
-            console.log('go');
             console.log(mp3s);
             check_mp3(mp3s, 0);
         }
@@ -103,7 +111,6 @@ function check_mp3(mp3s, ii){
         // simple checks
         if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > 10000){
             // check metadata
-            var name;
             var metadata_found = false;
             var parser = mm(res);
 
@@ -111,7 +118,10 @@ function check_mp3(mp3s, ii){
                 // no duplicates
                 if(!metadata_found){
                     console.log(result);
-                    name = result.artist+' - '+result.title;
+                    var name = mp3s[ii].match(/([^/]*)(?=\.mp3)/)[0];
+                    if(result.artist[0] != "" || result.title != ""){
+                        name = result.artist[0]+' - '+result.title;
+                    }
                     document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+mp3s[ii]+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
                     res.destroy();
                     metadata_found = true;
@@ -145,36 +155,33 @@ function check_mp3(mp3s, ii){
 
 // new search
 // DOESNT WORK WELL IF WE DO A SEARCH WHILE ONE IS GOING ON!
-// im scared that it is the google library that does that...
-// pretty slow and weird results as well...
 document.getElementById('search').addEventListener('submit', function(e){
+
+    // format search
     var search = document.getElementById('music').value;
+    search = search.replace(' ', '+') + ' mp3 -facebook -youtube -soundcloud -last.fm -amazon -dailymotion';
+
+    // remove actual searches
     $('.mp3').parent().remove();
 
-   // check google links
-    var google = require('google');
-    google.resultsPerPage = 15;
-    google(search+' mp3', function(err, next, links){
-        if (err) console.error(err);
+    // check google links
+    request('http://www.google.com/search?q='+search, function(error, response, body){
 
-        var mp3_sites = [];
+        var links = [];
 
-        for (var i = 0; i < links.length; ++i) {
-            if(links[i].link === null)
-                continue;
-            var uri = links[i].link.match(/http:\/\/([^/]*)(.*)/);
-            if(uri === null)
-                continue;
+        // parse relevant links
+        // (could avoid & at the end with /http[^&]*/g)
+        $(body).find('.r a').each(function(index){
+            links.push($(this).attr('href').match(/http.*/g)[0]);
+        });
 
-            // is this an amazon website ?
-            if(uri[1].indexOf("amazon") == -1 && uri[1].indexOf("soundcloud") == -1 && uri[1].indexOf("facebook") == -1 && uri[1].indexOf("youtube") == -1 && uri[1].indexOf("last.fm") == -1){
-               mp3_sites.push(links[i].link);
-            }
+        console.log(links);
 
+        // let's check those websites
+        if(links.length > 0){
+            mp3s = [];
+            check_link(links, 0);
         }
-
-        if(mp3_sites.length > 0)
-            check_link(mp3_sites, 0);
     });
 
     //
