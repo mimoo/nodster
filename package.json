@@ -1,15 +1,15 @@
 {
   "name": "Nodster",
   "main": "index.html",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/mimoo/nodster.git"
   },
   "window": {
     "title": "Nodster",
-    "toolbar": true,
-    "frame": true,
+    "toolbar": false,
+    "frame": false,
     "width": 962,
     "height": 600,
     "min_width": 962,
@@ -17,7 +17,6 @@
     "resizable": true
   },
   "dependencies": {
-    "google": "0.3.2",
     "musicmetadata": "0.3.7",
     "request": "2.34.0"
   },
