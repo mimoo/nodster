@@ -5,15 +5,14 @@ var fs = require("fs");
 var mm = require('musicmetadata');
 
 // CONFIG
-
 var maximum = 10; // maximum of mp3s it will find
+var minimum = 2000000; // minimum of bits(decimals) a mp3 must have
 
-// AUDIO
-
+// AUDIO HTML5
 var audio = new Audio();
 audio.src = 'buffer.mp3';
 
-// get the audio from url into a stream
+// Get the audio from url into a stream
 var buffering = false;
 var interrupting = false;
 
@@ -49,19 +48,14 @@ function getAudio(url){
                 buffer.write(chunk);
                 buffed += chunk.length;
                 $('.progress').css('width', buffed * 100 / res.headers['content-length']+ '%');
-                // do we need buffed? we need buffed/total
             });
 
-            // we're done downloading the file, no streaming yet
-            // that would be cool if we could start playing the
-            // mp3 while loading it though...
+            // file downloaded
             res.on('end', function() {
-                $('.progress').fadeOut();
-                // buffering
                 buffering = false;
-                // play
                 audio.load();
                 audio.play();
+                $('.progress').fadeOut();
                 if($('.play').attr('display') != 'none')
                 {
                     $('.play').hide();
@@ -74,20 +68,20 @@ function getAudio(url){
     }
 }
 
-// function called after a search ended
+// Function called after a search ends
 function end_search(){
     $('.fa-spin').hide();
     $('input[type=submit]').show();
 }
 
+// Check each link that google gives us
 var mp3s = [];
-// check each link
 function check_link(links, ii){
     request(links[ii],
      function(error, response, body) {
         if(ii == 0)
             mp3s = [];
-        // let's crawl this link
+
         if(!error && response.statusCode == 200){
             var newmp3 = [];
             /* using jQuery to parse the html,
@@ -111,10 +105,12 @@ function check_link(links, ii){
         if(ii < links.length){
             check_link(links, ii);
         }
+        // no more links to parse, let's check the mp3 found
         else if(mp3s.length != 0){
             console.log(mp3s);
             check_mp3(mp3s, 0);
         }
+        // no mp3 found. End search
         else{
             end_search();
         }
@@ -123,46 +119,39 @@ function check_link(links, ii){
 
 // check each mp3 file for metadatas
 // should try to do that asynchronously but limit it to 10 or something?
-// THIS IS NOT WORKING PROPERLY.. droping a lot of mp3s dunno why
 var mp3s_found = 0;
 
 function check_mp3(mp3s, ii){
     if(ii == 0)
         mp3s_found = 0;
 
-    var metadata_found = false;
 
     http.get(mp3s[ii], function(res){
         // simple checks
-        if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > 2000000){
-            // check metadata
-            var metadata_found = false;
+        if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > minimum){
+
             var parser = mm(res);
-
             parser.on('metadata', function (result) {
-                // no duplicates
-                if(!metadata_found){
-                    mp3s_found++;
-                    console.log(result);
-                    var name = mp3s[ii].match(/([^/]*)(?=\.mp3)/)[0];
-                    if(result.title != ""){
-                        if(result.artist[0] != "" && result.title.indexOf(result.artist[0]) > -1)
-                            name = result.title;
-                        else
-                            name = result.artist[0]+' - '+result.title;
 
-                    }
-                    document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+mp3s[ii]+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
-                    res.destroy();
-                    metadata_found = true;
+                mp3s_found++;
+                console.log(result);
+                var name = mp3s[ii].match(/([^/]*)(?=\.mp3)/)[0];
+                if(result.title != ""){
+                    if(result.artist[0] != "" && result.title.indexOf(result.artist[0]) > -1)
+                        name = result.title;
+                    else
+                        name = result.artist[0]+' - '+result.title;
 
-                    // check next mp3
-                    ii++;
-                    if(mp3s_found < maximum && ii < mp3s.length)
-                        check_mp3(mp3s, ii);
-                    else{
-                        end_search();
-                    }
+                }
+                document.getElementById('end').insertAdjacentHTML('beforebegin', '<li><a href="'+mp3s[ii]+'" class="mp3" title="'+res.headers['content-length']+'">'+name+'</a></li>');
+                res.destroy();
+
+                // check next mp3
+                ii++;
+                if(mp3s_found < maximum && ii < mp3s.length)
+                    check_mp3(mp3s, ii);
+                else{
+                    end_search();
                 }
 
             });
@@ -179,7 +168,7 @@ function check_mp3(mp3s, ii){
             }
         }
     }).on('error', function(e) {
-        console.log("Got error: " + e.message);
+        console.log("Got error: ", e.message);
         // check next mp3
         ii++;
         if(ii < mp3s.length)
@@ -191,7 +180,6 @@ function check_mp3(mp3s, ii){
 }
 
 // new search
-// DOESNT WORK WELL IF WE DO A SEARCH WHILE ONE IS GOING ON!
 function search(){
     // view
     $('.mp3').parent().remove();
@@ -233,8 +221,11 @@ document.getElementById('search').addEventListener('submit', function(e){
     e.preventDefault();
 });
 
-// in the list of mp3
-// when clicking on a link
+//
+// EVENTS
+//
+
+// get mp3
 $(document).on('click', '.mp3', function(e){
     getAudio($(this).attr('href'));
     $('.info').html($(this).text());
@@ -242,17 +233,18 @@ $(document).on('click', '.mp3', function(e){
     e.preventDefault();
 });
 
-// simple button to play
+// play button
 $('.play').click(function(){
     if($('.play').attr('display') != 'none')
     {
         $('.play').hide();
         $('.pause').show();
     }
-    audio.load();
     audio.play();
     return false;
 });
+
+// pause button
 $('.pause').click(function(){
     if($('.pause').attr('display') != 'none')
     {
@@ -262,6 +254,10 @@ $('.pause').click(function(){
     audio.pause();
     return false;
 });
+
+//
+// DYNAMIC AUDIO VISUALISATION
+//
 
 var duration;
 
