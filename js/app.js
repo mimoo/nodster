@@ -25,12 +25,13 @@ var nodster = new events.EventEmitter();
 // Get the audio from url into a stream
 var buffering = false;
 
+var buffer = fs.createWriteStream('buffer.mp3', { flags: 'w'});
+
 function getAudio(url){
 
     // init
     var buffed = 0;
     $('.progress').width(0);
-    var buffer = fs.createWriteStream('buffer.mp3');
 
     http.get(url, function(res) {
         if(res.statusCode != 200){
@@ -42,7 +43,6 @@ function getAudio(url){
         $('.progress').fadeIn();
 
         // starting to buffer
-        buffering = true;
 
         // if a new file wants to be buffered we kill this one
         nodster.on('new', function(){
@@ -58,7 +58,6 @@ function getAudio(url){
 
         // file downloaded
         res.on('end', function() {
-            buffering = false;
             audio.load();
             audio.play();
             $('.progress').fadeOut();
@@ -67,6 +66,7 @@ function getAudio(url){
                 $('.play').hide();
                 $('.pause').show();
             }
+            buffering = false;
             nodster.emit('clear');
         });
     }).on('error', function(e) {
@@ -215,9 +215,15 @@ $(document).on('click', '.mp3', function(e){
     // if something is already buffering we wait
     if(buffering)
         nodster.on('clear', function(){
+            audio.pause();
+            buffer.end();
+            buffer = fs.createWriteStream('buffer.mp3', { flags: 'w'});
+            buffering = true;
             getAudio(href);
         });
     else{
+
+        buffering = true;
         getAudio(href);
     }
 
