@@ -8,7 +8,6 @@ var audio = new Audio();
 audio.src = 'buffer.mp3';
 
 // get the audio from url into a stream
-// if we click multiple times, it opens multiple getAudio instances...
 var buffering = false;
 var interrupting = false;
 
