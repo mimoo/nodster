@@ -15,3 +15,9 @@ If you want to try it, just:
 * install the dependencies with `npm install` (you'll have to install node.js first and you can find the dependencies in the `package.json`.
 * get the relevant `ffmpegsumo` from `libraries` and use it instead of node-webkit's default (you need that to read mp3s).
 * launch the `nw` executable.
+
+If you wanna help, here's the to do list:
+
+* pause/play the music with the [space button](https://github.com/rogerwang/node-webkit/wiki/Native-UI-API-Manual)
+* stream the music instead of downloading and playing
+* add a [persistent](https://github.com/rogerwang/node-webkit/wiki/Save-persistent-data-in-app) playlist
