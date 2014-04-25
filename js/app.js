@@ -231,15 +231,16 @@ $(document).on('click', '.mp3', function(e){
     //
     var href = $(this).attr('href');
 
+    // view
+    $('.active').removeClass('active');
+    $(this).addClass('active');
+    $('.info').html($(this).text());
+
     // we wait for clearance
     nodster.once('clear', function(){
+        // launch
         pause();
         getAudio(href);
-
-        // view
-        $('.active').removeClass('active');
-        $(this).addClass('active');
-        $('.info').html($(this).text());
     });
 
     // if something is already buffering
