@@ -64,14 +64,17 @@ function getAudio(url){
 
         // file downloaded
         res.on('end', function() {
+            // we play mp3
             audio.load();
             audio.play();
+            // view
             $('.progress').fadeOut();
             if($('.play').attr('display') != 'none')
             {
                 $('.play').hide();
                 $('.pause').show();
             }
+            // we clear
             buffering = false;
             nodster.emit('clear');
         });
@@ -214,12 +217,14 @@ document.getElementById('search').addEventListener('submit', function(e){
 // get mp3
 $(document).on('click', '.mp3', function(e){
 
+    // we are the FIRST!
+    nodster.removeAllListeners("clear");
+
     //
     var href = $(this).attr('href');
 
     // we wait for clearance
     nodster.once('clear', function(){
-        nodster.removeAllListeners("clear");
         pause();
         getAudio(href);
 
