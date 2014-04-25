@@ -1,4 +1,7 @@
 /* GLOBAL */
+*{
+    box-sizing: border-box;
+}
 body{
     margin:0;
     font-family: "Open Sans", helvetica, arial, sans-serif;
@@ -29,6 +32,7 @@ a{
 
 /* NAV TOP */
 nav{
+    opacity:.9;
     z-index:99;
     position:fixed;
     top:0;
@@ -57,7 +61,6 @@ nav span{
 }
 nav form{
     float:right;
-    margin-right: 50px;
     padding-top:5px;
 }
 nav h1{
@@ -97,7 +100,7 @@ nav input[type=submit]{
     position:fixed;
     height:100%;
     background-color:rgba(255,0,0,.2);
-    z-index:99;
+    z-index:-1;
     top:0;
     left:0;
 }
@@ -133,4 +136,8 @@ ul li a{
 }
 #end{
     display:none;
+}
+ul li a.active{
+    background-color:rgba(0,0,0,.8);
+    color: whitesmoke;
 }

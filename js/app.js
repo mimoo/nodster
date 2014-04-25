@@ -1,8 +1,10 @@
-"use strict";
+;"use strict";
 var request = require("request");
 var http = require('http');
 var fs = require("fs");
 var mm = require('musicmetadata');
+var gui = require('nw.gui');
+var events = require('events');
 
 // CONFIG
 var maximum = 10; // maximum of mp3s it will find
@@ -12,64 +14,60 @@ var minimum = 2000000; // minimum of bits(decimals) a mp3 must have
 var audio = new Audio();
 audio.src = 'buffer.mp3';
 
+// CUSTOM EVENTS
+var nodster = new events.EventEmitter();
+
+
 //
 // CORE
 //
 
 // Get the audio from url into a stream
 var buffering = false;
-var interrupting = false;
 
 function getAudio(url){
-    if(buffering){
-        interrupting = true;
-        while(interrupting){
-            // wait
+
+    // init
+    var buffed = 0;
+    var buffer = fs.createWriteStream('buffer.mp3');
+
+    http.get(url, function(res) {
+        if(res.statusCode != 200){
+            alert('no mp3');
+            return false;
         }
-        buffering = false;
-        getAudio(url);
-        return false;
-    }
-    else{
-        audio.pause();
-        var buffed = 0;
-        var buffer = fs.createWriteStream('buffer.mp3');
 
-        http.get(url, function(res) {
-            if(res.statusCode != 200){
-                alert('no mp3');
-                return false;
-            }
+        // starting to buffer
+        buffering = true;
 
-            buffering = true;
-
-            res.on('data', function(chunk) {
-                if(interrupting){
-                    res.destroy();
-                    interrupting = false;
-                    return false;
-                }
-                buffer.write(chunk);
-                buffed += chunk.length;
-                $('.progress').css('width', buffed * 100 / res.headers['content-length']+ '%');
-            });
-
-            // file downloaded
-            res.on('end', function() {
-                buffering = false;
-                audio.load();
-                audio.play();
-                $('.progress').fadeOut();
-                if($('.play').attr('display') != 'none')
-                {
-                    $('.play').hide();
-                    $('.pause').show();
-                }
-            });
-        }).on('error', function(e) {
-          console.log("Got error: " + e.message);
+        // if a new file wants to be buffered we kill this one
+        nodster.on('new', function(){
+            res.destroy();
         });
-    }
+
+        // buffering
+        res.on('data', function(chunk) {
+            buffer.write(chunk);
+            buffed += chunk.length;
+            $('.progress').width(buffed * 100 / res.headers['content-length']+ '%');
+        });
+
+        // file downloaded
+        res.on('end', function() {
+            nodster.emit('clear');
+            buffering = false;
+            audio.load();
+            audio.play();
+            $('.progress').fadeOut();
+            if($('.play').attr('display') != 'none')
+            {
+                $('.play').hide();
+                $('.pause').show();
+            }
+        });
+    }).on('error', function(e) {
+      console.log("Got error: " + e.message);
+    });
 }
 
 // Function called after a search ends
@@ -95,12 +93,14 @@ function check_link(links, ii){
                 var href = $(this).attr('href');
 
                 // check + metadata
-                if(href !== undefined && href.indexOf(".mp3") > -1 && href.indexOf("http") > -1 && $.inArray(href, list_mp3s) == -1 && check_mp3(href))
-                        mp3s_found++;
+                if(href !== undefined && href.indexOf(".mp3") > 10 && href.indexOf("http") > -1 && $.inArray(href, list_mp3s) == -1 && check_mp3(href)){
+                    list_mp3s.push(href);
+                    mp3s_found++;
+                }
             })
         }
         else
-            console.log('can\'t access link',links[ii], error);
+            console.log('can\'t access link',links[ii], links[ii].indexOf("mp3"), error);
 
         // next links
         ii++;
@@ -117,7 +117,7 @@ function check_link(links, ii){
 
 // check distant mp3 file for metadatas
 function check_mp3(url){
-
+    console.log("checking mp3",url);
     http.get(url, function(res){
         // simple checks
         if(res.statusCode == 200 && res.headers['content-length'] !== undefined && res.headers['content-length'] > minimum){
@@ -203,9 +203,27 @@ document.getElementById('search').addEventListener('submit', function(e){
 
 // get mp3
 $(document).on('click', '.mp3', function(e){
-    getAudio($(this).attr('href'));
+
+    //
+    nodster.emit('new');
+    var href = $(this).attr('href');
+
+    // if something is already buffering we wait
+    if(buffering)
+        nodster.on('clear', function(){
+            getAudio(href);
+        });
+    else
+        getAudio(href);
+
+    // view
+    $('.active').removeClass('active');
+    $(this).addClass('active');
     $('.info').html($(this).text());
-    $('.progress').show();
+    $('.progress').width(0);
+    $('.progress').fadeIn();
+
+    //
     e.preventDefault();
 });
 
@@ -229,6 +247,11 @@ $('.pause').click(function(){
     }
     audio.pause();
     return false;
+});
+
+// close button
+$('.close').click(function(){
+    gui.Window.get().close();
 });
 
 //
